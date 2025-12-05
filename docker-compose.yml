@@ -1,0 +1,55 @@
+# Docker Compose for local development/testing
+# Run: docker compose up --build
+
+services:
+  # Next.js Storefront
+  storefront:
+    build:
+      context: .
+      dockerfile: apps/storefront/Dockerfile
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - api
+    networks:
+      - turborepo-network
+
+  # Vite Admin Panel
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    ports:
+      - "3001:80"
+    networks:
+      - turborepo-network
+
+  # Remix Blog
+  blog:
+    build:
+      context: .
+      dockerfile: apps/blog/Dockerfile
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - turborepo-network
+
+  # Express API
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - turborepo-network
+
+networks:
+  turborepo-network:
+    driver: bridge

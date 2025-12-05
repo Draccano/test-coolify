@@ -1,0 +1,91 @@
+# Coolify Deployment Configuration
+# https://coolify.io/docs/knowledge-base/docker/compose
+#
+# This configuration deploys a Turborepo monorepo with multiple services.
+# Each service is built from the monorepo root using app-specific Dockerfiles.
+#
+# Deployment steps in Coolify:
+# 1. Create a new "Docker Compose" resource
+# 2. Connect your Git repository
+# 3. Point to this coolify.yaml file
+# 4. Configure domains for each service in Coolify UI
+# 5. Deploy!
+
+services:
+  # ==========================================
+  # API Service (Express.js backend)
+  # ==========================================
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Coolify will auto-configure the port based on this expose
+    expose:
+      - "3000"
+
+  # ==========================================
+  # Storefront (Next.js)
+  # ==========================================
+  storefront:
+    build:
+      context: .
+      dockerfile: apps/storefront/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      # Reference the API service internally
+      - API_URL=http://api:3000
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    expose:
+      - "3000"
+
+  # ==========================================
+  # Admin Panel (Vite + React)
+  # ==========================================
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    expose:
+      - "80"
+
+  # ==========================================
+  # Blog (Remix)
+  # ==========================================
+  blog:
+    build:
+      context: .
+      dockerfile: apps/blog/Dockerfile
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    expose:
+      - "3000"
