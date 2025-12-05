@@ -1,6 +1,10 @@
 # Coolify Deployment Configuration
 # https://coolify.io/docs/knowledge-base/docker/compose
 
+networks:
+  coolify:
+    external: true
+
 services:
   # ==========================================
   # API Service (Express.js backend)
@@ -9,6 +13,8 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    networks:
+      - coolify
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -28,6 +34,8 @@ services:
     build:
       context: .
       dockerfile: apps/storefront/Dockerfile
+    networks:
+      - coolify
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
@@ -51,6 +59,8 @@ services:
     build:
       context: .
       dockerfile: apps/admin/Dockerfile
+    networks:
+      - coolify
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
       interval: 30s
@@ -67,6 +77,8 @@ services:
     build:
       context: .
       dockerfile: apps/blog/Dockerfile
+    networks:
+      - coolify
     environment:
       - NODE_ENV=production
     healthcheck:
