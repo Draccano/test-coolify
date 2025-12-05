@@ -38,6 +38,9 @@ RUN pnpm turbo run build --filter=admin
 # ============================================
 FROM nginx:alpine AS runner
 
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
 # Copy custom nginx config
 COPY --from=builder /app/apps/admin/dist /usr/share/nginx/html
 

@@ -1,15 +1,5 @@
 # Coolify Deployment Configuration
 # https://coolify.io/docs/knowledge-base/docker/compose
-#
-# This configuration deploys a Turborepo monorepo with multiple services.
-# Each service is built from the monorepo root using app-specific Dockerfiles.
-#
-# Deployment steps in Coolify:
-# 1. Create a new "Docker Compose" resource
-# 2. Connect your Git repository
-# 3. Point to this coolify.yaml file
-# 4. Configure domains for each service in Coolify UI
-# 5. Deploy!
 
 services:
   # ==========================================
@@ -23,12 +13,11 @@ services:
       - NODE_ENV=production
       - PORT=3000
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    # Coolify will auto-configure the port based on this expose
     expose:
       - "3000"
 
@@ -42,13 +31,12 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
-      # Reference the API service internally
       - API_URL=http://api:3000
     depends_on:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -64,7 +52,7 @@ services:
       context: .
       dockerfile: apps/admin/Dockerfile
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
+      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -82,7 +70,7 @@ services:
     environment:
       - NODE_ENV=production
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
